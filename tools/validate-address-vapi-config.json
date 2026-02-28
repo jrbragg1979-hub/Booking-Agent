@@ -1,5 +1,5 @@
 {
-  "type": "code",
+  "type": "custom-tool",
   "name": "validate_street_address",
   "description": "Validates a street name spoken by the caller against the list of known streets in Go-Flow Plumbing's service area (Sonoma and Marin counties). Call this tool after the customer provides their street address to verify the street name is correct. Returns the closest matching street names if no exact match is found.",
   "parameters": {
@@ -12,11 +12,16 @@
     },
     "required": ["streetName"]
   },
-  "environmentVariables": [
-    {
-      "name": "STREET_LIST_URL",
-      "value": "https://raw.githubusercontent.com/jrbragg1979-hub/Booking-Agent/main/data/service-area-streets.txt"
-    }
-  ],
-  "_setup_instructions": "SETUP: 1) Push the Booking-Agent repo to GitHub first so the street list URL works. 2) Make sure the repo is PUBLIC so the code tool can fetch the file. 3) In Vapi Dashboard, go to Tools > Create Tool > Code Tool. 4) Paste the code from validate-address-tool.ts. 5) Set the name, description, and parameters as shown above. 6) Add the environment variable STREET_LIST_URL. 7) Add the tool to your assistant's model configuration."
+  "serverUrl": "YOUR_N8N_WEBHOOK_URL/validate-street-address",
+  "_setup_instructions": [
+    "1. In n8n, create a new workflow and import the contents of workflows/n8n-validate-address.json",
+    "2. Activate the workflow in n8n — it will give you a production webhook URL",
+    "3. Copy the webhook URL (it will look like: https://your-n8n-instance.com/webhook/validate-street-address)",
+    "4. In Vapi Dashboard, go to Tools > Create Tool > Custom Tool",
+    "5. Set the name to: validate_street_address",
+    "6. Set the description as shown above",
+    "7. Add the parameter: streetName (string, required) with the description above",
+    "8. Set the Server URL to your n8n webhook URL from step 3",
+    "9. Add the tool to your assistant's model configuration"
+  ]
 }

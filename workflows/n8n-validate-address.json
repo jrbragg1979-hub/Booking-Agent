@@ -1,0 +1,111 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "validate-street-address",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a1b2c3d4-e5f6-7890-abcd-100000000001",
+      "name": "Vapi Tool Webhook",
+      "webhookId": "validate-street-address"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/jrbragg1979-hub/Booking-Agent/main/data/service-area-streets.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "a1b2c3d4-e5f6-7890-abcd-100000000002",
+      "name": "Fetch Street List"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the street name from the Vapi tool call request\nconst vapiRequest = $('Vapi Tool Webhook').first().json.body;\nconst toolCall = vapiRequest.message.toolCallList[0];\nconst toolCallId = toolCall.id;\nconst streetName = toolCall.arguments.streetName || '';\n\n// Get the street list from the HTTP request\nconst streetData = $('Fetch Street List').first().json.data || $('Fetch Street List').first().json;\nlet streets;\nif (typeof streetData === 'string') {\n  streets = streetData.trim().split('\\n').map(s => s.trim()).filter(s => s.length > 0);\n} else {\n  // If the HTTP node returned the body as a string in .data\n  const rawBody = $('Fetch Street List').first().json.data;\n  streets = rawBody.trim().split('\\n').map(s => s.trim()).filter(s => s.length > 0);\n}\n\n// Normalize for comparison\nconst normalize = (s) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\\s+/g, ' ').trim();\n\nconst input = normalize(streetName);\n\n// 1. Try exact match\nconst exactMatch = streets.find(s => normalize(s) === input);\nif (exactMatch) {\n  return [{\n    json: {\n      results: [{\n        toolCallId: toolCallId,\n        result: JSON.stringify({\n          exactMatch: true,\n          matchedStreet: exactMatch,\n          bestMatches: [exactMatch],\n          suggestion: `The street \"${exactMatch}\" is a valid street in our service area.`\n        })\n      }]\n    }\n  }];\n}\n\n// 2. Compute edit distance (Levenshtein) for fuzzy matching\nconst editDistance = (a, b) => {\n  const m = a.length, n = b.length;\n  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));\n  for (let i = 0; i <= m; i++) dp[i][0] = i;\n  for (let j = 0; j <= n; j++) dp[0][j] = j;\n  for (let i = 1; i <= m; i++) {\n    for (let j = 1; j <= n; j++) {\n      dp[i][j] = a[i - 1] === b[j - 1]\n        ? dp[i - 1][j - 1]\n        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);\n    }\n  }\n  return dp[m][n];\n};\n\n// 3. Score all streets and find closest matches\nconst scored = streets.map(s => ({\n  street: s,\n  distance: editDistance(input, normalize(s))\n}));\n\nscored.sort((a, b) => a.distance - b.distance);\n\nconst bestMatches = scored.slice(0, 5).map(s => s.street);\nconst topDistance = scored[0].distance;\n\nlet suggestion;\nif (topDistance <= 2) {\n  suggestion = `Did the caller mean \"${bestMatches[0]}\"? This is the closest match to what was heard (\"${streetName}\").`;\n} else if (topDistance <= 4) {\n  suggestion = `No exact match found for \"${streetName}\". Closest options: ${bestMatches.slice(0, 3).join(', ')}. Please ask the caller to confirm or repeat the street name.`;\n} else {\n  suggestion = `\"${streetName}\" does not closely match any street in our service area. Please ask the caller to repeat or spell the street name.`;\n}\n\nreturn [{\n  json: {\n    results: [{\n      toolCallId: toolCallId,\n      result: JSON.stringify({\n        exactMatch: false,\n        bestMatches: bestMatches,\n        suggestion: suggestion\n      })\n    }]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "a1b2c3d4-e5f6-7890-abcd-100000000003",
+      "name": "Fuzzy Match Street"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        0
+      ],
+      "id": "a1b2c3d4-e5f6-7890-abcd-100000000004",
+      "name": "Respond to Vapi"
+    }
+  ],
+  "connections": {
+    "Vapi Tool Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Street List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Street List": {
+      "main": [
+        [
+          {
+            "node": "Fuzzy Match Street",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fuzzy Match Street": {
+      "main": [
+        [
+          {
+            "node": "Respond to Vapi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
