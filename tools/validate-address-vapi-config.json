@@ -1,27 +1,16 @@
 {
   "type": "custom-tool",
-  "name": "validate_street_address",
-  "description": "Validates a street name spoken by the caller against the list of known streets in Go-Flow Plumbing's service area (Sonoma and Marin counties). Call this tool after the customer provides their street address to verify the street name is correct. Returns the closest matching street names if no exact match is found.",
+  "name": "validate_address",
+  "description": "Validates a customer address using Google Geocoding. Call this tool after the customer provides their full address. It verifies the address exists and confirms it is within Go-Flow Plumbing's service area (Sonoma and Marin counties). Returns the corrected/formatted address for confirmation.",
   "parameters": {
     "type": "object",
     "properties": {
-      "streetName": {
+      "address": {
         "type": "string",
-        "description": "The street name as heard from the caller (e.g., 'Petaluma Blvd N', 'Oak Ave', 'Sir Francis Drake Blvd'). Include the street type (St, Ave, Blvd, etc.) if the caller said it."
+        "description": "The full address as heard from the caller, including street, city, and state or zip code if provided (e.g., '123 Oak Ave, Santa Rosa, CA')."
       }
     },
-    "required": ["streetName"]
+    "required": ["address"]
   },
-  "serverUrl": "https://jordanbragg79.app.n8n.cloud/webhook/validate-street-address",
-  "_setup_instructions": [
-    "1. In n8n, create a new workflow and import the contents of workflows/n8n-validate-address.json",
-    "2. Activate the workflow in n8n — it will give you a production webhook URL",
-    "3. Copy the webhook URL (it will look like: https://your-n8n-instance.com/webhook/validate-street-address)",
-    "4. In Vapi Dashboard, go to Tools > Create Tool > Custom Tool",
-    "5. Set the name to: validate_street_address",
-    "6. Set the description as shown above",
-    "7. Add the parameter: streetName (string, required) with the description above",
-    "8. Set the Server URL to your n8n webhook URL from step 3",
-    "9. Add the tool to your assistant's model configuration"
-  ]
+  "serverUrl": "https://jordanbragg79.app.n8n.cloud/webhook/validate-street-address"
 }
