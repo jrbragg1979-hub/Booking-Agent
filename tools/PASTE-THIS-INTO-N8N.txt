@@ -1,0 +1,62 @@
+var webhookData = $("Vapi Tool Webhook").first().json;
+var message = webhookData.body.message;
+var toolCall = message.toolCallList[0];
+var toolCallId = toolCall.id;
+var streetName = toolCall.arguments.streetName;
+if (!streetName) {
+  return [{ json: { results: [{ toolCallId: toolCallId, result: "No street name provided" }] } }];
+}
+var fetchResult = $("Fetch Street List").first().json;
+var streetText = "";
+if (typeof fetchResult === "string") {
+  streetText = fetchResult;
+} else if (typeof fetchResult.data === "string") {
+  streetText = fetchResult.data;
+} else {
+  streetText = JSON.stringify(fetchResult);
+}
+var clean = [];
+var lines = streetText.split("\n");
+for (var i = 0; i < lines.length; i++) {
+  var s = lines[i].trim();
+  if (s.length > 0) clean.push(s);
+}
+function norm(s) {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/  +/g, " ").trim();
+}
+var input = norm(streetName);
+var exact = null;
+for (var i = 0; i < clean.length; i++) {
+  if (norm(clean[i]) === input) { exact = clean[i]; break; }
+}
+if (exact) {
+  return [{ json: { results: [{ toolCallId: toolCallId, result: JSON.stringify({ exactMatch: true, matchedStreet: exact, suggestion: "Valid street: " + exact }) }] } }];
+}
+function dist(a, b) {
+  var m = a.length;
+  var n = b.length;
+  var d = [];
+  for (var i = 0; i <= m; i++) { d[i] = []; for (var j = 0; j <= n; j++) { d[i][j] = 0; } }
+  for (var i = 0; i <= m; i++) d[i][0] = i;
+  for (var j = 0; j <= n; j++) d[0][j] = j;
+  for (var i = 1; i <= m; i++) {
+    for (var j = 1; j <= n; j++) {
+      if (a[i-1] === b[j-1]) { d[i][j] = d[i-1][j-1]; }
+      else { d[i][j] = 1 + Math.min(d[i-1][j], d[i][j-1], d[i-1][j-1]); }
+    }
+  }
+  return d[m][n];
+}
+var scored = [];
+for (var i = 0; i < clean.length; i++) {
+  scored.push({ street: clean[i], d: dist(input, norm(clean[i])) });
+}
+scored.sort(function(a, b) { return a.d - b.d; });
+var top5 = [];
+for (var i = 0; i < 5 && i < scored.length; i++) { top5.push(scored[i].street); }
+var td = scored[0].d;
+var sug = "";
+if (td <= 2) { sug = "Closest match: " + top5[0] + ". Confirm with caller."; }
+else if (td <= 4) { sug = "No exact match. Closest: " + top5.slice(0,3).join(", ") + ". Ask caller to confirm."; }
+else { sug = "No close match found. Ask caller to repeat or spell the street name."; }
+return [{ json: { results: [{ toolCallId: toolCallId, result: JSON.stringify({ exactMatch: false, bestMatches: top5, suggestion: sug }) }] } }];
