@@ -1,5 +1,5 @@
-// Get the incoming webhook data - try multiple paths since n8n structures it differently
-const webhookData = $('Vapi Tool Webhook').first().json;
+// Get the incoming webhook data
+const webhookData = $("Vapi Tool Webhook").first().json;
 
 // Vapi sends: { message: { toolCallList: [...] } }
 // n8n may put this at .body, or directly at the root
@@ -43,7 +43,7 @@ if (!streetName) {
 }
 
 // Get the street list from the HTTP request
-const fetchResult = $('Fetch Street List').first().json;
+const fetchResult = $("Fetch Street List").first().json;
 let streetText = "";
 if (typeof fetchResult === "string") {
   streetText = fetchResult;
@@ -55,15 +55,17 @@ if (typeof fetchResult === "string") {
   streetText = JSON.stringify(fetchResult);
 }
 
-const streets = streetText.trim().split("\n").map(s => s.trim()).filter(s => s.length > 0);
+const streets = streetText.trim().split("\n").map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 
 // Normalize for comparison
-const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+function normalize(s) {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+}
 
-const input = normalize(streetName);
+var input = normalize(streetName);
 
 // 1. Try exact match
-const exactMatch = streets.find(s => normalize(s) === input);
+var exactMatch = streets.find(function(s) { return normalize(s) === input; });
 if (exactMatch) {
   return [{
     json: {
@@ -81,33 +83,41 @@ if (exactMatch) {
 }
 
 // 2. Compute edit distance (Levenshtein) for fuzzy matching
-const editDistance = (a, b) => {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1]
-        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+function editDistance(a, b) {
+  var m = a.length;
+  var n = b.length;
+  var dp = [];
+  for (var i = 0; i <= m; i++) {
+    dp[i] = [];
+    for (var j = 0; j <= n; j++) {
+      dp[i][j] = 0;
+    }
+  }
+  for (var i = 0; i <= m; i++) dp[i][0] = i;
+  for (var j = 0; j <= n; j++) dp[0][j] = j;
+  for (var i = 1; i <= m; i++) {
+    for (var j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
     }
   }
   return dp[m][n];
-};
+}
 
 // 3. Score all streets and find closest matches
-const scored = streets.map(s => ({
-  street: s,
-  distance: editDistance(input, normalize(s))
-}));
+var scored = streets.map(function(s) {
+  return { street: s, distance: editDistance(input, normalize(s)) };
+});
 
-scored.sort((a, b) => a.distance - b.distance);
+scored.sort(function(a, b) { return a.distance - b.distance; });
 
-const bestMatches = scored.slice(0, 5).map(s => s.street);
-const topDistance = scored[0].distance;
+var bestMatches = scored.slice(0, 5).map(function(s) { return s.street; });
+var topDistance = scored[0].distance;
 
-let suggestion;
+var suggestion;
 if (topDistance <= 2) {
   suggestion = "Did the caller mean " + bestMatches[0] + "? This is the closest match to what was heard (" + streetName + ").";
 } else if (topDistance <= 4) {
