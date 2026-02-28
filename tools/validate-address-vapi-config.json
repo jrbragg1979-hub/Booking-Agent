@@ -1,0 +1,22 @@
+{
+  "type": "code",
+  "name": "validate_street_address",
+  "description": "Validates a street name spoken by the caller against the list of known streets in Go-Flow Plumbing's service area (Sonoma and Marin counties). Call this tool after the customer provides their street address to verify the street name is correct. Returns the closest matching street names if no exact match is found.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "streetName": {
+        "type": "string",
+        "description": "The street name as heard from the caller (e.g., 'Petaluma Blvd N', 'Oak Ave', 'Sir Francis Drake Blvd'). Include the street type (St, Ave, Blvd, etc.) if the caller said it."
+      }
+    },
+    "required": ["streetName"]
+  },
+  "environmentVariables": [
+    {
+      "name": "STREET_LIST_URL",
+      "value": "https://raw.githubusercontent.com/jrbragg1979-hub/Booking-Agent/main/data/service-area-streets.txt"
+    }
+  ],
+  "_setup_instructions": "SETUP: 1) Push the Booking-Agent repo to GitHub first so the street list URL works. 2) Make sure the repo is PUBLIC so the code tool can fetch the file. 3) In Vapi Dashboard, go to Tools > Create Tool > Code Tool. 4) Paste the code from validate-address-tool.ts. 5) Set the name, description, and parameters as shown above. 6) Add the environment variable STREET_LIST_URL. 7) Add the tool to your assistant's model configuration."
+}

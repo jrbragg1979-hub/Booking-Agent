@@ -1,0 +1,232 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7af2b83c-5dfe-4a9a-a0df-0a8e45fc6344",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "d384a5d2-f0bd-4c9b-9b1b-19f7e65bfd09",
+      "name": "Webhook",
+      "webhookId": "7af2b83c-5dfe-4a9a-a0df-0a8e45fc6344"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11j1eD479Al-cU6mzEDX7X0fyU9KTj2NbFG6ed2wbsfI",
+          "mode": "list",
+          "cachedResultName": "Call Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11j1eD479Al-cU6mzEDX7X0fyU9KTj2NbFG6ed2wbsfI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11j1eD479Al-cU6mzEDX7X0fyU9KTj2NbFG6ed2wbsfI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.customerName }}",
+            "Date/Time": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.appointmentDateTime }}",
+            "Summary": "={{ $json.body.message.analysis.summary }}",
+            "Call Type": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.serviceType }}",
+            "Email": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.customerEmail }}",
+            "Address": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.customerAddress }}",
+            "Phone Number": "={{ $json.body.message.artifact.structuredOutputs['145bd8e1-4b71-4914-8c70-7c2d71376546'].result.customerPhoneNumber }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer",
+              "displayName": "Customer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Call Type",
+              "displayName": "Call Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date/Time",
+              "displayName": "Date/Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -112
+      ],
+      "id": "2d111eb4-e4ea-41af-a47b-35557f355e18",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "71qUopQcayU5Lfd4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "See You Soon!",
+        "emailType": "text",
+        "message": "=Dear {{ $json.Customer }}.\n\nThank you for choosing Go-Flow Plumbing! We're excited to help resolve your plumbing issue.\n\nYour appointment is confirmed for:\n{{ $json['Date/Time'] }}\nat {{ $json.Address }}\n\nOur technician will arrive within the scheduled window and will text or call you 30 minutes before arrival.\n\nQuick recap:{{ $json['Call Type'] }}\n- Service: Residential \n- Contact: {{ $json['Phone Number'] }} / {{ $json.Email }}\n\nIf anything changes or you need to reschedule, feel free to call us at 867-5309 or simply reply to this email.\n\nWe truly appreciate your trust in Go-Flow Plumbing, where your problems become ours!\n\nBest regards,  \nNed Kelly (Your AI Assistant)  \nGo-Flow Plumbing Team   \nhttps://goflowplumbing.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        -112
+      ],
+      "id": "9c0ad819-10a3-45dd-bcee-b5a383a85c25",
+      "name": "Send a message",
+      "webhookId": "eeec3d57-de1a-479a-8d70-f244b2c75d87",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gakgkrd0L0Eaknd0",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jrbragg1979@gmail.com",
+        "subject": "=New Appointment Booked: {{ $json.Customer }} - {{ $json['Call Type'] }}",
+        "emailType": "text",
+        "message": "=NEW APPOINTMENT BOOKED\n=======================\n\nCustomer: {{ $json.Customer }}\nPhone: {{ $json['Phone Number'] }}\nEmail: {{ $json.Email }}\nAddress: {{ $json.Address }}\n\nAppointment: {{ $json['Date/Time'] }}\nService Type: {{ $json['Call Type'] }}\n\nCall Summary:\n{{ $json.Summary }}\n\n=======================\nThis notification was sent automatically by the Go-Flow Plumbing booking system.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        80
+      ],
+      "id": "f1a2b3c4-d5e6-7890-abcd-ef1234567890",
+      "name": "Notify Dispatch",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gakgkrd0L0Eaknd0",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Dispatch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Notify Dispatch": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce513871be26679dfdbd306c814e79135e18d16fb9373c726ffedb7bbde8542c"
+  }
+}
