@@ -12,7 +12,7 @@
     },
     "required": ["streetName"]
   },
-  "serverUrl": "YOUR_N8N_WEBHOOK_URL/validate-street-address",
+  "serverUrl": "https://jordanbragg79.app.n8n.cloud/webhook/validate-street-address",
   "_setup_instructions": [
     "1. In n8n, create a new workflow and import the contents of workflows/n8n-validate-address.json",
     "2. Activate the workflow in n8n — it will give you a production webhook URL",
