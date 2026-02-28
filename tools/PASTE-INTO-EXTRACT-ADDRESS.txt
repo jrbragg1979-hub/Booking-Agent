@@ -3,5 +3,10 @@ var body = webhookData.body || webhookData;
 var message = body.message || body;
 var toolCall = message.toolCallList[0];
 var toolCallId = toolCall.id;
-var address = toolCall.arguments.address || "";
+var address = "";
+if (toolCall.function && toolCall.function.arguments && toolCall.function.arguments.address) {
+  address = toolCall.function.arguments.address;
+} else if (toolCall.arguments && toolCall.arguments.address) {
+  address = toolCall.arguments.address;
+}
 return [{ json: { toolCallId: toolCallId, address: address } }];
