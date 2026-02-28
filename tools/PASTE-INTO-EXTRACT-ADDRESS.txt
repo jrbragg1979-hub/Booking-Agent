@@ -1,0 +1,7 @@
+var webhookData = $("Vapi Tool Webhook").first().json;
+var body = webhookData.body || webhookData;
+var message = body.message || body;
+var toolCall = message.toolCallList[0];
+var toolCallId = toolCall.id;
+var address = toolCall.arguments.address || "";
+return [{ json: { toolCallId: toolCallId, address: address } }];

@@ -1,0 +1,23 @@
+var toolCallId = $("Extract Address").first().json.toolCallId;
+var data = $("Google Geocoding").first().json;
+if (data.status !== "OK" || !data.results || data.results.length === 0) {
+  return [{ json: { results: [{ toolCallId: toolCallId, result: JSON.stringify({ valid: false, suggestion: "Could not validate this address. Please ask the caller to repeat their full address including city and zip code." }) }] } }];
+}
+var result = data.results[0];
+var formatted = result.formatted_address;
+var components = result.address_components;
+var county = "";
+for (var i = 0; i < components.length; i++) {
+  var types = components[i].types;
+  for (var j = 0; j < types.length; j++) {
+    if (types[j] === "administrative_area_level_2") {
+      county = components[i].long_name;
+    }
+  }
+}
+var inServiceArea = county === "Sonoma County" || county === "Marin County";
+if (inServiceArea) {
+  return [{ json: { results: [{ toolCallId: toolCallId, result: JSON.stringify({ valid: true, formattedAddress: formatted, county: county, suggestion: "Validated address: " + formatted }) }] } }];
+} else {
+  return [{ json: { results: [{ toolCallId: toolCallId, result: JSON.stringify({ valid: false, formattedAddress: formatted, county: county, suggestion: "This address is in " + county + ", which is outside our service area. Let the caller know we may not be able to service that location." }) }] } }];
+}
